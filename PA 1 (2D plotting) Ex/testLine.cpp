@@ -1,14 +1,5 @@
 /* testLine.cpp
 
-CS Linux
-g++ -std=c++1y testLine.cpp canvas.cpp 
-
-https://stackoverflow.com/questions/31965413/compile-c14-code-with-g
-
-macOS:
-c++ -std=c++14 testLine.cpp canvas.cpp 
-
-
  */
 
 #include <iostream>
@@ -26,7 +17,8 @@ int main()
     //Canvas gc( size, size, colors::BLUE );  // Graphics canvas
 
     //raw version of drawing lines directly to the canvas
-    for( auto y = 0 ; y < size ; y += size/8 ) {
+    for( auto y = 0 ; y < size ; y += size/8 ) 
+    {
         for( auto x = 0 ; x < size ; x += size/8 )
         {
             Line( gc, x, y, x+40, y+40, colors::RED );
