@@ -3,13 +3,15 @@
 
 #include <vector>
 
-struct color {
+struct color 
+{
     uint8_t red;
     uint8_t green;
     uint8_t blue;
 };
 
-namespace colors {
+namespace colors 
+{
   constexpr color BLACK{   0,   0,   0 };
   constexpr color WHITE{ 255, 255, 255 };
   constexpr color RED{   255,   0,   0 };
@@ -17,7 +19,8 @@ namespace colors {
   constexpr color BLUE{    0,   0, 255 };
 }
 
-struct pixel {
+struct pixel 
+{
     color c;
 };
 
