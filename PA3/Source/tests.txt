@@ -1,0 +1,97 @@
+TEST FOR MATIX MULTIPLICATION AND PRINTING:
+   int mat1[4][4] = 
+   {
+      {1, 1, 1, 1},
+      {2, 2, 2, 2},
+      {3, 3, 3, 3},
+      {4, 4, 4, 4}
+   };
+   int mat2[4][4] = 
+   {
+      {4, 4, 4, 4},
+      {1, 1, 1, 1},
+      {2, 2, 2, 2},
+      {3, 3, 3, 3}
+   };
+   int result[4][4]; 
+
+   MYGL_PRINT_MATRIX(mat1); 
+
+   MYGL_PRINT_MATRIX(mat2); 
+
+   MYGL_MULTIPLY_TRANSFORMS(mat1,mat2,result); 
+
+   MYGL_PRINT_MATRIX(result); 
+
+TEST FOR DRAWLINE: 
+    
+   GraphicsCanvas gc( SIZE, SIZE, colors::WHITE );
+
+   for( auto y = 0 ; y < SIZE ; y += SIZE/8 ) 
+   {
+        for( auto x = 0 ; x < SIZE ; x += SIZE/8 )
+        {
+            drawLine( gc, x, y, x+40, y+40, colors::RED );
+
+            drawLine( gc, x, y+33, x, y, colors::BLUE );
+            
+            //std::cout << "x: " << x << "  ";
+            //std::cout << "y: " << y << std::endl;
+        }
+    }
+
+TEST FOR WRITING CANVAS TO FILE: 
+
+   //create file and save canvas to file
+   std::string outFileName("testCanvas.pbm"); 
+   writeGraphicsToFile(gc, outFileName); 
+
+TEST FOR PLOT LINE EX:
+
+   //initialize graphics to default values
+   GraphicsCanvas canvas(SIZE,SIZE, colors::WHITE); 
+   //InitGraphics(canvas,SIZE, SIZE, colors::WHITE); 
+   InitGraphics(SIZE,SIZE); 
+
+   //set new viewport and window dimensions
+   setViewport(-1.0,1.0,-1.0,1.0);
+   setWindow(-3.0,3.0,-1.0,8.0);
+   
+   //set up graph and axes
+   moveTo2D(-2.5,0.0);
+   drawTo2D(canvas,2.5,0.0);
+   moveTo2D(0.0,-.05);
+   drawTo2D(canvas,0.0,7.5);
+
+   //set up increments of points
+   double x = -2.0; 
+   double xIncrement = 4.0/100.0; //segments
+
+   //move to first point in curve
+   moveTo2D(x,exp(-x));
+   
+   //plot the curve with a for loop
+   for(int i = 0; i <= 100; i++)
+   {
+      x += xIncrement; 
+      drawTo2D(canvas,x,exp(-x));
+   }
+
+TEST FOR DEFINE TRANSFORMS IF STATEMENTS:
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(IDENTITY,1);
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(TRANSLATION,2); 
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(SCALING,3); 
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(X_ROTATION,4); 
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(Y_ROTATION,5);  
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(Z_ROTATION,6); 
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(PERSPECTIVE,7);
+
+TEST FOR DEFINE_ELEMENTARY_TRANSFORM:
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(M,IDENTITY,0); 
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(M,TRANSLATION, 3); 
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(M, SCALING, 2); 
+
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(M,X_ROTATION,M_PI); 
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(M,Y_ROTATION,M_PI); 
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(M,Z_ROTATION,M_PI); 
+   MYGL_DEFINE_ELEMENTARY_TRANSFORM(M,PERSPECTIVE,5); 
