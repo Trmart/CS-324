@@ -101,6 +101,9 @@ void MYGL_DEFINE_ELEMENTARY_TRANSFORM(double matrix[NUM_ROWS][NUM_COLS], enum MY
 //matrix multiplication, concatenates matrices
 void MYGL_MULTIPLY_TRANSFORMS(double matrix_A[NUM_ROWS][NUM_COLS], double matrix_B[NUM_ROWS][NUM_COLS], double result[NUM_ROWS][NUM_COLS]);
 
+//multiplies together a vector and a 4x4 matrix
+void MYGL_MULTIPLY(std::vector<double>Vec3, double ACTIVE_TRANSFORM[NUM_ROWS][NUM_COLS]); 
+
 //builds a transform matrix
 void MYGL_BUILD_ELEMENTARY_TRANSFORM(double TRANSFORM_MATRIX[NUM_ROWS][NUM_COLS], enum MYGL_MATRIX_TYPE TRANSFORM_CODE, double TRANSFORM_VALUE); 
 
@@ -117,16 +120,16 @@ void MYGL_PRINT_MATRIX(double matrix[NUM_ROWS][NUM_COLS]);
 void MYGL_COPY_MATRIX(double matrix_A[NUM_ROWS][NUM_COLS],double matrix_B[NUM_ROWS][NUM_COLS]); 
 
 //moves to a specific point in the view
-void moveTo2D(double x, double y);
-void MYGL_MOVE_TO_3D(double x, double y);
+void MYGL_MOVE_TO_3D(std::vector<double> Vec3, double ACTIVE_TRANSFORM[NUM_ROWS][NUM_COLS], double CAMERA_TRANSFORM[NUM_ROWS][NUM_COLS]);
 
 //draws a line to a point in the view
-void drawTo2D(GraphicsCanvas& canvas,double x, double y);
-void MYGL_DRAW_TO_3D(GraphicsCanvas& canvas,double x, double y);
+void MYGL_DRAW_TO_3D(GraphicsCanvas& canvas, std::vector<double> Vec3, double ACTIVE_TRANSFORM[NUM_ROWS][NUM_COLS], double CAMERA_TRANSFORM[NUM_ROWS][NUM_COLS]);
 
 //drawline
-void drawLine(GraphicsCanvas& canvas, double x1, double y1, double x2, double y2, color color);
 void MYGL_DRAW_LINE(GraphicsCanvas& canvas, double x1, double y1, double x2, double y2, color color);
+
+//write name to file
+void MYGL_WRITE_NAME(GraphicsCanvas const& canvas, std::string const& outFileName); 
 
 //writes the created image to a bmp file
 void writeGraphicsToFile(GraphicsCanvas const& canvas, std::string const& outFileName);
