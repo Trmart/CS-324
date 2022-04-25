@@ -12,6 +12,7 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#define M_PI 3.141592653589793 
 
 //Window Dimension Variables
 static double X_WIN_LENGTH,Y_WIN_LENGTH;
@@ -144,7 +145,7 @@ void GraphicsCanvas::clearScreen()
 *********************************************/
 void writeGraphicsToFile(GraphicsCanvas const& canvas, std::string const& outFileName)
 {
-   std::fstream outFile(outFileName, std::ios::out); 
+   std::fstream outFile(outFileName, std::ios::app); 
 
    //check to see if file creation and opening was successful
    if(!outFile)
@@ -168,6 +169,28 @@ void writeGraphicsToFile(GraphicsCanvas const& canvas, std::string const& outFil
    }
 }
 
+/*********************************************
+ * Function: MYGL_WRITE_NAME
+ * Description: creates a bmp file and writes 
+ *              my name to the ouptut file. 
+ * Input: GraphicsCanvas object and filename 
+ *        for output
+ * Output: creates a bmp file with canvas
+*********************************************/
+void MYGL_WRITE_NAME(GraphicsCanvas const& canvas, std::string const& outFileName)
+{
+   std::fstream outFile(outFileName, std::ios::out); 
+
+   //check to see if file creation and opening was successful
+   if(!outFile)
+   {
+      //shoot error message and exit if file creation failed 
+      std::cerr << "Couldn't open file " << outFileName <<" Terminating Process\n"; 
+      exit(1); 
+   }
+
+   outFile << "Taylor Martin\n CS-324: Computer Graphics\n PA#3: MyGL\n";
+}
 
 /*********************************************
  * Function: setViewport
@@ -177,7 +200,6 @@ void writeGraphicsToFile(GraphicsCanvas const& canvas, std::string const& outFil
 
 void MYGL_DEFINE_VIEWPORT(double x1, double x2, double y1,double y2)
 {
-   std::cout<<"In setViewport\n"; 
 
    X_VIEW_MIN = x1;
    X_VIEW_MAX = x2;
@@ -185,10 +207,6 @@ void MYGL_DEFINE_VIEWPORT(double x1, double x2, double y1,double y2)
    Y_VIEW_MAX = y2;
    X_VIEW_LENGTH = X_VIEW_MAX - X_VIEW_MIN;
    Y_VIEW_LENGTH = Y_VIEW_MAX - Y_VIEW_MIN; 
-
-   std::cout << " X_VIEW_MIN: " << X_VIEW_MIN << " Y_VIEW_MIN: " << Y_VIEW_MIN << " X_VIEW_MAX: " 
-               << X_VIEW_MAX << " Y_VIEW_MAX: " << Y_VIEW_MAX << "X_VIEW_LENGTH: " << X_VIEW_LENGTH << " Y_VIEW_LENGTH: "
-               << Y_VIEW_LENGTH << "\n\n"; 
 }
 
 /*********************************************
@@ -198,18 +216,12 @@ void MYGL_DEFINE_VIEWPORT(double x1, double x2, double y1,double y2)
 *********************************************/
 void MYGL_DEFINE_WINDOW(double x1, double x2, double y1,double y2)
 { 
-   std:: cout << "In setWindow()\n";
-
    X_WIN_MIN = x1;
    X_WIN_MAX = x2;
    Y_WIN_MIN = y1;
    Y_WIN_MAX = y2;
    X_WIN_LENGTH = X_WIN_MAX - X_WIN_MIN;
    Y_WIN_LENGTH = Y_WIN_MAX - Y_WIN_MIN;
-
-   std::cout << " X_WIN_MIN: " << X_WIN_MIN << " Y_WIN_MIN: " << Y_WIN_MIN << " X_WIN_MAX: " 
-               << X_WIN_MAX << " Y_WIN_MAX: " << Y_WIN_MAX << "X_WIN_LENGTH: " << X_WIN_LENGTH << " Y_VWIN_LENGTH: "
-               << Y_WIN_LENGTH << "\n\n"; 
 }
 
 /*********************************************
@@ -237,51 +249,79 @@ void MYGL_WINDOW_TO_VIEWPORT(double X_WIN_POINT, double Y_WIN_POINT)
 }
 
 /*********************************************
- * Function: moveTo2D
+ * Function: MYGL_MOVE_TO_3D
  * Description: moves to a specific point in the view
- * Input: x and y coordinates
- * Output:
+ * Input: x, y, z cordinates and active transformation matrix
 *********************************************/
-void moveTo2D(double x, double y)
-{
-   //scaling
-   MYGL_WINDOW_TO_VIEWPORT(x,y);
 
-   //save scaled points as start position for drawTo2D
+void MYGL_MOVE_TO_3D(std::vector<double> Vec3, double ACTIVE_TRANSFORM[NUM_ROWS][NUM_COLS], double CAMERA_TRANSFORM[NUM_ROWS][NUM_COLS])
+{
+   // procedure Draw3D (
+   // (x, y, z) --- point to which we want to draw
+   // aT --- active transform
+   // cT --- Camera transform )
+   // {
+   // Apply aT to (x, y, z) --> (x’, y’, z’)
+   // Apply cT to (x’, y’, z’) --> (x’’, y’’, z’’)
+   // -- Project onto xy plane (x’’, y’’)
+   // Map window to viewport (x’’, y’’) --> (vX, vY)
+   // DrawTo( vX, vY )
+   // }
+
+   // Apply aT to (x, y, z) --> (x’, y’, z’)
+   MYGL_MULTIPLY(Vec3,ACTIVE_TRANSFORM);
+
+   // Apply cT to (x’, y’, z’) --> (x’’, y’’, z’’)
+   MYGL_MULTIPLY(Vec3,CAMERA_TRANSFORM);
+
+   //Project onto xy plane (x’’, y’’)
+   MYGL_WINDOW_TO_VIEWPORT(Vec3[0], Vec3[1]); 
+
    X_POS_START = TRANSFORMED_X_COORDINATE; 
    Y_POS_START = TRANSFORMED_Y_COORDINATE; 
-
-   std::cout << "X_POS_START: " << X_POS_START << " Y_POS_START: " << Y_POS_START << "\n\n"; 
 }
 
+
 /*********************************************
- * Function: drawTo2D
+ * Function: MYGL_DRAW_TO_3D
  * Description: draws a line to a point in the view
- * Input: x and y coordinates
+ * Input: x, y, z cordinates and active transformation matrix
 *********************************************/
-void drawTo2D(GraphicsCanvas& canvas, double x, double y)
+
+void MYGL_DRAW_TO_3D(GraphicsCanvas& canvas, std::vector<double> Vec3, double ACTIVE_TRANSFORM[NUM_ROWS][NUM_COLS], double CAMERA_TRANSFORM[NUM_ROWS][NUM_COLS])
 {
-   std::cout<<"In drawTo2D\n"; 
+   // procedure Draw3D (
+   // (x, y, z) --- point to which we want to draw
+   // aT --- active transform
+   // cT --- Camera transform )
+   // {
+   // Apply aT to (x, y, z) --> (x’, y’, z’)
+   // Apply cT to (x’, y’, z’) --> (x’’, y’’, z’’)
+   // -- Project onto xy plane (x’’, y’’)
+   // Map window to viewport (x’’, y’’) --> (vX, vY)
+   // DrawTo( vX, vY )
+   // }
 
-   //scaling
-   MYGL_WINDOW_TO_VIEWPORT(x,y);
+   // Apply aT to (x, y, z) --> (x’, y’, z’)
+   MYGL_MULTIPLY(Vec3,ACTIVE_TRANSFORM);
 
-   //returns endpoint for draw line
-   X_POS_END = TRANSFORMED_X_COORDINATE;
-   Y_POS_END = TRANSFORMED_Y_COORDINATE;
+   // Apply cT to (x’, y’, z’) --> (x’’, y’’, z’’)
+   MYGL_MULTIPLY(Vec3,CAMERA_TRANSFORM);
 
-   std::cout << "X_POS_START: " << X_POS_START << " Y_POS_START: " << Y_POS_START << "\n"; 
-   std::cout << "X_POS_END: " << X_POS_END << " Y_POS_END: " << Y_POS_END << "\n"; 
+   //Project onto xy plane (x’’, y’’)
+   MYGL_WINDOW_TO_VIEWPORT(Vec3[0], Vec3[1]); 
 
-   //call drawLine after scaling
-   drawLine(canvas,X_POS_START,Y_POS_START,X_POS_END,Y_POS_END,colors::RED); 
+   X_POS_END = TRANSFORMED_X_COORDINATE; 
+   Y_POS_END = TRANSFORMED_Y_COORDINATE; 
+
+   //call MYGL_DrawLine after scaling
+   MYGL_DrawLine(canvas,X_POS_START,Y_POS_START,X_POS_END,Y_POS_END,colors::BLACK); 
 
    //save current point for next function call
    X_POS_START = X_POS_END;
    Y_POS_START = Y_POS_END;
-
-   std::cout << "X_POS_START: " << X_POS_START << " Y_POS_START: " << Y_POS_START << "\n\n"; 
 }
+
 
 /*********************************************
  * Function: MYGL_DEFINE_ELEMENTARY_TRANSFORM
@@ -319,17 +359,17 @@ void MYGL_DEFINE_ELEMENTARY_TRANSFORM(double matrix[NUM_ROWS][NUM_COLS], enum MY
 
    if(code == X_TRANSLATION)
    {
-      matrix[0][0] = value; 
+      matrix[3][0] = value; 
    }
 
    if(code == Y_TRANSLATION)
    {
-      matrix[1][1] = value;
+      matrix[3][1] = value;
    }
 
     if(code == Z_TRANSLATION)
    {
-      matrix[2][2] = value;
+      matrix[3][2] = value;
    }
 
    if(code == SCALING)
@@ -342,32 +382,37 @@ void MYGL_DEFINE_ELEMENTARY_TRANSFORM(double matrix[NUM_ROWS][NUM_COLS], enum MY
 
    if(code == X_ROTATION)
    {
-      matrix[1][1] = cos(value);
-      matrix[1][2] = sin(value);
-      matrix[2][1] = -sin(value);
-      matrix[2][2] = cos(value);
+      double radians = value * (180/M_PI); 
+      matrix[1][1] = cos(radians);
+      matrix[1][2] = sin(radians);
+      matrix[2][1] = -sin(radians);
+      matrix[2][2] = cos(radians);
    }
 
    if(code == Y_ROTATION)
    {
-      matrix[0][0] = cos(value);
-      matrix[0][2] = -sin(value);
-      matrix[2][0] = sin(value);
-      matrix[2][2] = cos(value);
+      double radians = value * (180/M_PI); 
+      matrix[0][0] = cos(radians);
+      matrix[0][2] = -sin(radians);
+      matrix[2][0] = sin(radians);
+      matrix[2][2] = cos(radians);
    }
 
    if(code == Z_ROTATION)
    {
-      matrix[0][0] = cos(value);
-      matrix[0][1] = sin(value);
-      matrix[1][0] = -sin(value);
-      matrix[1][1] = cos(value);
+      double radians = value * (180/M_PI); 
+      matrix[0][0] = cos(radians);
+      matrix[0][1] = sin(radians);
+      matrix[1][0] = -sin(radians);
+      matrix[1][1] = cos(radians);
    }
 
    if(code == PERSPECTIVE)
    {
       matrix[2][3] = -(1/value);
    }
+
+   //MYGL_PRINT_MATRIX(matrix); 
 }
 
 /*********************************************
@@ -427,16 +472,26 @@ void MYGL_DEFINE_CAMERA_TRANSFORM(double CAMERA_MATRIX[NUM_ROWS][NUM_COLS], doub
 
    //Apply translation transformations
    MYGL_DEFINE_ELEMENTARY_TRANSFORM(CAMERA_MATRIX, X_TRANSLATION, -fX);
+   MYGL_PRINT_MATRIX(CAMERA_MATRIX); 
+   
    MYGL_BUILD_ELEMENTARY_TRANSFORM(CAMERA_MATRIX, Y_TRANSLATION, -fY);
+   MYGL_PRINT_MATRIX(CAMERA_MATRIX); 
+   
    MYGL_BUILD_ELEMENTARY_TRANSFORM(CAMERA_MATRIX, Z_TRANSLATION, -fZ);
-
+   MYGL_PRINT_MATRIX(CAMERA_MATRIX); 
    //Apply rotation transformations
    MYGL_BUILD_ELEMENTARY_TRANSFORM(CAMERA_MATRIX,Y_ROTATION,-theta); 
+   MYGL_PRINT_MATRIX(CAMERA_MATRIX); 
+
    MYGL_BUILD_ELEMENTARY_TRANSFORM(CAMERA_MATRIX,X_ROTATION,phi); 
+   MYGL_PRINT_MATRIX(CAMERA_MATRIX); 
+
    MYGL_BUILD_ELEMENTARY_TRANSFORM(CAMERA_MATRIX,Z_ROTATION,-alpha); 
+   MYGL_PRINT_MATRIX(CAMERA_MATRIX); 
 
    //Apply perspective transformation
    MYGL_BUILD_ELEMENTARY_TRANSFORM(CAMERA_MATRIX,PERSPECTIVE,r); 
+   MYGL_PRINT_MATRIX(CAMERA_MATRIX); 
 }
 
 
@@ -448,7 +503,7 @@ void MYGL_DEFINE_CAMERA_TRANSFORM(double CAMERA_MATRIX[NUM_ROWS][NUM_COLS], doub
  * 
  * Input: a vector of points(x,y,z) and active transformation matrix. 
 *********************************************/
-void MYGL_APPLY_TRANSFORM(std::vector<double>Vec3,double ACTIVE_TRANSFORM[NUM_ROWS][NUM_COLS])
+void MYGL_APPLY_TRANSFORM(std::vector<double> Vec3, double ACTIVE_TRANSFORM[NUM_ROWS][NUM_COLS])
 {
    // procedure ApplyTransform (
    // (x, y, z) -- a point
@@ -459,16 +514,27 @@ void MYGL_APPLY_TRANSFORM(std::vector<double>Vec3,double ACTIVE_TRANSFORM[NUM_RO
    // Multiply [x y z 1] [aT] giving (x’’, y’’, z’’, h)
    // (h usually 1)
    // (x’, y’, z’) = (x’’, y’’, z’’)
+
+   //point to vector
+   Vec3.push_back(1); 
+
+   //Multiply vector by our active transformation matrix
+   MYGL_MULTIPLY(Vec3,ACTIVE_TRANSFORM); 
+   
+   //Vector to point
+   Vec3.pop_back(); 
+
 }
 
 
 /*********************************************
- * Function: drawLine
- * Description: called by drawTo2D
+ * Function: MYGL_DrawLine
+ * Description: called by MYGL_DRAW_TO_3D, 
+ *              draws a line. 
  * Input: GraphicsCanvas object, x1,y1,x2,y2 
  *        coordinates and color structure instance
 *********************************************/
-void drawLine(GraphicsCanvas& canvas, double x1, double y1, double x2, double y2, color color)
+void MYGL_DrawLine(GraphicsCanvas& canvas, double x1, double y1, double x2, double y2, color color)
 {
    std::cout<<"In drawLine\n"; 
    std::cout<<"x1: "<<x1<<" y1: "<< y1 <<" x2: "<<x2 << " y2: "<<y2<<"\n\n";
@@ -566,6 +632,34 @@ void MYGL_MULTIPLY_TRANSFORMS(double matrix_A[NUM_ROWS][NUM_COLS], double matrix
             result[i][j] += matrix_A[i][k] * matrix_B[k][j]; 
          }
       }
+   }
+
+   //MYGL_PRINT_MATRIX(result); 
+}
+
+/*********************************************
+ * Function: MYGL_MULTIPLY
+ * Description: multiplys together a vector  
+ *             and a 4x4 matrix. Stores result 
+ *             back into the sent in vector. 
+ * Input: A vector (x,y,z,1) and a 4x4
+ *         active transformation matrix. 
+ *********************************************/
+
+void MYGL_MULTIPLY(std::vector<double>Vec3, double ACTIVE_TRANSFORM[NUM_ROWS][NUM_COLS])
+{
+   int result[NUM_COLS];
+
+   for(int i = 0; i < NUM_ROWS; i++)
+   {
+      result[i] = 0; 
+
+      for(int j = 0; j < NUM_COLS; j++)
+      {
+         result[i] += Vec3[i] * ACTIVE_TRANSFORM[i][j]; 
+      }
+
+      Vec3[i] = result[i]; 
    }
 }
 
